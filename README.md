@@ -40,6 +40,7 @@ pnpm --filter @nature/api smoke   # 走一遍注册→建点→导入物种→�
 | `pnpm db:deploy` | 应用已有迁移（部署/CI 用） |
 | `pnpm db:migrate` | 开发环境生成新迁移 |
 | `pnpm db:seed` | 写入预置物种与演示数据 |
+| `pnpm --filter @nature/api demo:transect` | 样线调查端到端演示（建线→分段→录入→冲突复核→补录→打印对齐时间线） |
 | `pnpm db:studio` | 打开 Prisma Studio |
 | `pnpm db:sync-schema` | 由 SQLite schema 生成 PostgreSQL schema |
 | `pnpm test` | 后端接口/算法测试 + 前端组件测试 |
@@ -74,7 +75,19 @@ origin/
 - 对比：按年份并排首现记录与照片，输出相对上一年与相对多年中位基准的偏移天数
 - 统计：概览指标、逐年首现日折线、相对基准偏移柱状图、天气同期偏差（样本不足时明确不下结论）
 - 导出：CSV（带 BOM，Excel 不乱码）与 JSON（含照片链接）
+- 样线调查：固定路线分段、分段录入物种与数量、「里程 × 时间」自动对齐成统一时间线、重叠/事后补录冲突的四种复核口径、CSV 与 GeoJSON 导出（见下）
 - 运维：健康检查、就绪检查、结构化日志与 traceId、限流、备份恢复说明
+
+## 样线调查（Line Transect Survey）
+
+沿固定路线分段记录物种与数量，并自动并入一条可复核的统一时间线。
+
+- **数据模型**：`Transect`（路线）/ `TransectSegment`（分段，有序里程区间，可带 GeoJSON 折线）/ `TransectEntry`（原始录入，不可变，区分 `MANUAL` 现场录入与 `BACKFILL` 事后补录）/ `TransectConflict`（重叠冲突与复核决定）。
+- **对齐引擎**（`apps/api/src/modules/transects/alignment.ts`，纯函数）：把每条录入视为「里程 × 时间」矩形，用全部矩形边界（外加分段边界）切网格、合并同覆盖集合格子，得到互不重叠、并集等于全部录入的时间线片段；每条录入的整数数量用**面积权重 + 最大余数法**守恒分摊到各片段，原始合计永远可加回。
+- **分段重叠 / 事后补录**：同物种矩形相交自动产生 `PENDING` 冲突，时间线片段标黄，原始合计保留；复核提供四种口径——`SUM`（两批不同个体，求和）、`DUPLICATE`（同一批重复，保留分摊大者，相等保先录入）、`KEEP_A` / `KEEP_B`（只采信其一）。决定持久化，任何录入增删改后确定性重算，结论不失踪。补录可直接「替代」旧录入（`POST /transects/:id/entries/:entryId/replace`），按实际观测时刻落位并标记 `BACKFILL`。
+- **可复核**：每个时间线片段展开可见每条原始录入的分摊数量；冲突对话框并排展示 A/B 两条录入的时间、里程、观察者与备注。
+- **导出**：`GET /transects/:id/export?format=csv|geojson`。CSV 为对齐后片段（含原始/复核口径、待复核标记、entryId 与分摊明细）；GeoJSON 导出分段 LineString 与按里程插值的目击 Point。
+- **快速体验**：`pnpm --filter @nature/api demo:transect` 一键在开发库生成演示路线并打印对齐时间线。
 
 ## 关键实现说明
 
@@ -124,7 +137,7 @@ tar xzf uploads_2026-10-07.tar.gz -C apps/api/uploads
 
 | 层级 | 命令 | 覆盖 |
 | --- | --- | --- |
-| 后端单元 + 接口 | `pnpm --filter @nature/api test` | 40 项：认证、权限、重复校验、游标分页、草稿、照片、对比偏移、导出 |
+| 后端单元 + 接口 | `pnpm --filter @nature/api test` | 68 项：认证、权限、重复校验、游标分页、草稿、照片、对比偏移、导出、样线对齐引擎（分摊守恒/重叠/补录/复核）与样线接口闭环 |
 | 后端闭环冒烟 | `pnpm --filter @nature/api smoke` | 17 项：真实 HTTP 走通主链路 |
 | 前端组件/状态 | `pnpm --filter @nature/web test` | 8 项：分组、筛选参数、时间线卡片、对比网格 |
 | 端到端 | `pnpm --filter @nature/web test:e2e` | 桌面与移动视口：注册→建点→导入物种→记录→时间线；匿名分享 |

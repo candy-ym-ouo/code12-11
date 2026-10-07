@@ -252,3 +252,6 @@ export async function downloadExport(
   link.click();
   URL.revokeObjectURL(blobUrl);
 }
+
+export { transectApi, transectConflictApi } from "./transect";
+export type { EntryPayload, TimelineResponse, Transect, TransectConflict, TransectEntry, TransectSegment, TimelineSlice } from "@/types/transect";

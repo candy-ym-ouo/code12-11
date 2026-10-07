@@ -1,4 +1,4 @@
-import type { Observation, Phenophase, Site, Species, Tag } from "@prisma/client";
+import type { Observation, Phenophase, Site, Species, Tag, Transect } from "@prisma/client";
 import { prisma } from "./prisma";
 import { ApiError } from "./http";
 
@@ -36,4 +36,10 @@ export async function getOwnedTag(userId: string, tagId: string): Promise<Tag> {
   const tag = await prisma.tag.findFirst({ where: { id: tagId, ownerId: userId } });
   if (!tag) throw notFound("标签");
   return tag;
+}
+
+export async function getOwnedTransect(userId: string, transectId: string): Promise<Transect> {
+  const transect = await prisma.transect.findFirst({ where: { id: transectId, ownerId: userId } });
+  if (!transect) throw notFound("样线");
+  return transect;
 }

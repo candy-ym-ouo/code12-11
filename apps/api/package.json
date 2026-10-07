@@ -13,6 +13,7 @@
     "db:deploy": "node scripts/ensure-db.mjs && prisma migrate deploy",
     "db:push": "node scripts/ensure-db.mjs && prisma db push",
     "db:seed": "node scripts/ensure-db.mjs && tsx prisma/seed.ts",
+    "demo:transect": "tsx scripts/demo-transect.ts",
     "db:studio": "prisma studio",
     "db:sync-schema": "node scripts/sync-postgres-schema.mjs",
     "test": "vitest run",

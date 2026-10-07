@@ -16,6 +16,7 @@ const router = useRouter();
 const activeNav = computed(() => {
   const name = String(route.name ?? "");
   if (name.startsWith("observation")) return "timeline";
+  if (name.startsWith("transect")) return "transects";
   return name;
 });
 
@@ -51,6 +52,9 @@ async function handleLogout() {
           </router-link>
           <router-link class="shell-nav__item" :class="{ 'is-active': activeNav === 'sites' }" to="/sites">
             地点
+          </router-link>
+          <router-link class="shell-nav__item" :class="{ 'is-active': activeNav === 'transects' }" to="/transects">
+            样线
           </router-link>
           <router-link class="shell-nav__item" :class="{ 'is-active': activeNav === 'species' }" to="/species">
             物种
