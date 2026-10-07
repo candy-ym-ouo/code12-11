@@ -21,6 +21,8 @@
     "test": "pnpm -r test",
     "test:coverage": "pnpm --filter @nature/api test:coverage",
     "test:e2e": "pnpm --filter @nature/web test:e2e",
+    "transect": "pnpm --filter @nature/transect dev --",
+    "transect:demo": "pnpm --filter @nature/transect demo",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck"
   }

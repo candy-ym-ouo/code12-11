@@ -56,12 +56,25 @@ origin/
 │  ├─ prisma/      # schema、迁移、种子
 │  ├─ scripts/     # ensure-db、postgres schema 生成、冒烟测试
 │  └─ src/         # config / middleware / modules / lib / tests
-└─ apps/web        # Vue 3 前端
-   ├─ src/api      # axios 客户端与接口封装
-   ├─ src/stores   # Pinia
-   ├─ src/views    # 时间线、对比、统计、地点、物种、设置、分享
-   └─ tests        # 单元测试 + Playwright E2E
+├─ apps/web        # Vue 3 前端
+│  ├─ src/api      # axios 客户端与接口封装
+│  ├─ src/stores   # Pinia
+│  ├─ src/views    # 时间线、对比、统计、地点、物种、设置、分享
+│  └─ tests        # 单元测试 + Playwright E2E
+└─ packages/transect  # 样线调查（零依赖 TS 库 + CLI）：分段记录、重叠/补录对齐、复核、导出
 ```
+
+## 样线调查（packages/transect）
+
+沿固定样线分段记录物种与数量、并入时间线，支持**分段重叠**与**事后补录**与既有结果对齐：原始记录只追加，原子分段与目击时间线每次确定性重算，目击编号按录入锚点保持稳定，可复核并导出 CSV / JSON / GeoJSON / Markdown。
+
+```bash
+pnpm --filter @nature/transect demo   # 端到端演示（重叠去重、跨批次补录、数量冲突）
+pnpm --filter @nature/transect test   # 49 项测试
+pnpm transect -- --help               # CLI（init/batch/segment/obs/import/timeline/review/stats/export）
+```
+
+详见 `packages/transect/README.md`。
 
 ## 已实现的功能
 

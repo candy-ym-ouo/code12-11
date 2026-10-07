@@ -1,0 +1,36 @@
+{
+  "name": "@nature/transect",
+  "version": "0.1.0",
+  "private": true,
+  "description": "样线调查：沿固定路线分段记录物种与数量，支持分段重叠/事后补录对齐、时间线、复核与导出",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "yangxian": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "test": "tsc -p tsconfig.json && vitest run",
+    "test:watch": "vitest",
+    "demo": "tsx examples/demo.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
