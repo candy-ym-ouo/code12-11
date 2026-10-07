@@ -1,0 +1,25 @@
+:root {
+  --el-color-primary: #3f6f52;
+  --el-color-primary-light-3: #6d9379;
+  --el-color-primary-light-5: #93b09b;
+  --el-color-primary-light-7: #bccfc0;
+  --el-color-primary-light-8: #d2dfd5;
+  --el-color-primary-light-9: #eaf1ec;
+  --el-color-danger: #c0554b;
+  --el-color-warning: #b0793a;
+  --el-color-info: #3a6ea5;
+  --el-border-radius-base: 6px;
+  --el-font-size-base: 14px;
+}
+
+.el-card {
+  border-radius: var(--radius-card);
+}
+
+.el-button + .el-button {
+  margin-left: 8px;
+}
+
+.el-table {
+  --el-table-border-color: var(--color-border);
+}

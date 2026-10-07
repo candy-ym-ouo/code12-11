@@ -1,0 +1,27 @@
+{
+  "name": "nature-timeline",
+  "version": "1.0.0",
+  "private": true,
+  "description": "自然观察时间线：记录树木发芽、昆虫出现、鸟鸣变化与天气异常，并按年份对比同一地点",
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "setup": "pnpm install && pnpm db:migrate && pnpm db:seed",
+    "dev": "pnpm --parallel --filter @nature/api --filter @nature/web dev",
+    "build": "pnpm -r build",
+    "start": "pnpm --filter @nature/api start",
+    "db:generate": "pnpm --filter @nature/api db:generate",
+    "db:migrate": "pnpm --filter @nature/api db:migrate",
+    "db:deploy": "pnpm --filter @nature/api db:deploy",
+    "db:seed": "pnpm --filter @nature/api db:seed",
+    "db:studio": "pnpm --filter @nature/api db:studio",
+    "db:sync-schema": "pnpm --filter @nature/api db:sync-schema",
+    "test": "pnpm -r test",
+    "test:coverage": "pnpm --filter @nature/api test:coverage",
+    "test:e2e": "pnpm --filter @nature/web test:e2e",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck"
+  }
+}

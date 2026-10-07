@@ -1,0 +1,200 @@
+// 自然观察时间线 · 数据模型
+// 开发与测试使用 SQLite；生产可切换到 PostgreSQL（见 schema.postgres.prisma）。
+// 枚举字段统一使用 String，避免两种数据库对 enum 的支持差异。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  displayName  String
+  role         String   @default("USER")
+  timezone     String   @default("Asia/Shanghai")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  refreshTokens RefreshToken[]
+  sites         Site[]
+  species       Species[]
+  observations  Observation[]
+  tags          Tag[]
+  shareLinks    ShareLink[]
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  userAgent String?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Site {
+  id          String    @id @default(cuid())
+  ownerId     String
+  name        String
+  latitude    Float?
+  longitude   Float?
+  elevationM  Int?
+  habitat     String?
+  description String?
+  archivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  owner        User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  observations Observation[]
+  shareLinks   ShareLink[]
+
+  @@unique([ownerId, name])
+  @@index([ownerId, archivedAt])
+}
+
+model Species {
+  id             String    @id @default(cuid())
+  ownerId        String?
+  category       String
+  commonName     String
+  scientificName String?
+  family         String?
+  description    String?
+  isPreset       Boolean   @default(false)
+  archivedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  owner        User?         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  phenophases  Phenophase[]
+  observations Observation[]
+
+  @@index([ownerId, category, commonName])
+  @@index([category, commonName])
+  @@index([isPreset])
+}
+
+model Phenophase {
+  id         String  @id @default(cuid())
+  speciesId  String
+  name       String
+  code       String?
+  orderIndex Int     @default(0)
+  color      String  @default("#3F6F52")
+  isDefault  Boolean @default(false)
+
+  species      Species       @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+  observations Observation[]
+
+  @@unique([speciesId, name])
+  @@index([speciesId, orderIndex])
+}
+
+model Observation {
+  id              String    @id @default(cuid())
+  ownerId         String
+  siteId          String
+  speciesId       String?
+  phenophaseId    String?
+  kind            String
+  status          String    @default("PUBLISHED")
+  observationDate String
+  observedAt      DateTime?
+  title           String?
+  notes           String?
+  temperatureC    Float?
+  precipitationMm Float?
+  windLevel       Int?
+  humidityPct     Int?
+  anomalyType     String?
+  anomalySeverity String?
+  impactNotes     String?
+  source          String    @default("MANUAL")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  owner       User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  site        Site              @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  species     Species?          @relation(fields: [speciesId], references: [id], onDelete: SetNull)
+  phenophase  Phenophase?       @relation(fields: [phenophaseId], references: [id], onDelete: SetNull)
+  photos      ObservationPhoto[]
+  tags        ObservationTag[]
+
+  @@index([ownerId, status, observationDate])
+  @@index([siteId, speciesId, phenophaseId, observationDate])
+  @@index([ownerId, kind, observationDate])
+  @@index([siteId, observationDate])
+}
+
+model ObservationPhoto {
+  id            String    @id @default(cuid())
+  observationId String
+  storageKey    String    @unique
+  thumbKey      String
+  displayKey    String
+  originalName  String
+  mimeType      String
+  width         Int
+  height        Int
+  bytes         Int
+  takenAt       DateTime?
+  gpsStripped   Boolean   @default(true)
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+
+  observation Observation @relation(fields: [observationId], references: [id], onDelete: Cascade)
+
+  @@index([observationId, sortOrder])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  ownerId   String
+  name      String
+  color     String   @default("#B0793A")
+  createdAt DateTime @default(now())
+
+  owner        User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  observations ObservationTag[]
+
+  @@unique([ownerId, name])
+}
+
+model ObservationTag {
+  observationId String
+  tagId         String
+
+  observation Observation @relation(fields: [observationId], references: [id], onDelete: Cascade)
+  tag         Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([observationId, tagId])
+  @@index([tagId])
+}
+
+model ShareLink {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  siteId    String
+  ownerId   String
+  scope     String    @default("TIMELINE")
+  expiresAt DateTime
+  revokedAt DateTime?
+  viewCount Int       @default(0)
+  createdAt DateTime  @default(now())
+
+  site  Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, revokedAt])
+}
